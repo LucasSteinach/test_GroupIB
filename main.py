@@ -5,10 +5,7 @@ extended with information about IP (source: http://ip-api.com)
 """
 
 import pandas as pd
-from pprint import pprint
 import requests
-import csv
-import json
 import time
 
 initial_data = pd.read_excel('test.xlsx')
