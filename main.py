@@ -61,6 +61,17 @@ def connect_api(ips: list) -> dict:
     return result
 
 
+def create_flat_table(raw_table: pd.DataFrame) -> pd.DataFrame:
+    row_to_remove = []
+    result = pd.DataFrame(dict(raw_table))
+    for index, row in raw_table.iterrows():
+        if row['ips'].find(',') != -1:
+            row_to_remove.append(index)
+            for ip in row['ips'].split(','):
+                result.loc[len(result) + 1] = pd.Series(list(row)[:-1] + [ip], index=raw_table.columns)
+    result = result.drop(row_to_remove).reset_index(drop=True)
+    return result
+
 # returns list of ips without "success" status
 def get_failed_ip_list(ips: dict) -> list:
     return [key for key, value in ips.items() if value.get('status') != 'success']
@@ -117,6 +128,8 @@ api_data = {
     'ips': get_ip_list(list(initial_data['ips'])),
 }
 
+initial_data = create_flat_table(initial_data)
+print(initial_data)
 
 # УБЕРИ КОММЕНТАРИЙ
 # data_to_concate = connect_api(api_data['ips'])
@@ -132,6 +145,5 @@ concate_fields = list(api_data['fields'].keys())[2:-1]
 initial_data[concate_fields] = initial_data['ips'].apply(
     lambda x: pd.Series(concate_data(x, concate_fields, data_to_concate))
 )
-
 
 initial_data.to_csv(output_name, mode='w', index=False)
